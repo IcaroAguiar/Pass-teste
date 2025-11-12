@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -22,6 +23,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { Pagination } from "./pagination";
 
 // Dados mockados
 interface Veiculo {
@@ -64,17 +66,36 @@ type SortField = keyof Veiculo;
 type SortDirection = "asc" | "desc";
 
 export function VeiculosTable() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Estado da paginação a partir da URL
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const pageSize = Number(searchParams.get("pageSize")) || 10;
+  const urlSortField = searchParams.get("sortField") as SortField | null;
+  const urlSortDirection = (searchParams.get("sortDirection") as SortDirection) || "asc";
+
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortField, setSortField] = useState<SortField | null>(urlSortField);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(urlSortDirection);
+
+  const updateURL = (updates: Record<string, string | number>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, String(value));
+      } else {
+        params.delete(key);
+      }
+    });
+    router.push(`?${params.toString()}`);
+  };
 
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
+    const newDirection = sortField === field && sortDirection === "asc" ? "desc" : "asc";
+    setSortField(field);
+    setSortDirection(newDirection);
+    updateURL({ sortField: field, sortDirection: newDirection });
   };
 
   const toggleRowSelection = (id: string) => {
@@ -88,18 +109,25 @@ export function VeiculosTable() {
   };
 
   const toggleAllSelection = () => {
-    if (selectedRows.size === mockVeiculos.length) {
-      setSelectedRows(new Set());
+    const currentPageIds = paginatedVeiculos.map((v) => v.id);
+    const allCurrentSelected = currentPageIds.every((id) => selectedRows.has(id));
+    
+    const newSelected = new Set(selectedRows);
+    if (allCurrentSelected) {
+      currentPageIds.forEach((id) => newSelected.delete(id));
     } else {
-      setSelectedRows(new Set(mockVeiculos.map((v) => v.id)));
+      currentPageIds.forEach((id) => newSelected.add(id));
     }
+    setSelectedRows(newSelected);
   };
 
   const formatDate = (date: Date) => {
     return format(date, "dd/MM/yyyy", { locale: ptBR });
   };
 
-  const sortedVeiculos = [...mockVeiculos].sort((a, b) => {
+  // Paginação
+  const paginatedVeiculos = useMemo(() => {
+    const sorted = [...mockVeiculos].sort((a, b) => {
     if (!sortField) return 0;
     
     const aValue = a[sortField];
@@ -121,7 +149,22 @@ export function VeiculosTable() {
     } else {
       return aStr > bStr ? -1 : aStr < bStr ? 1 : 0;
     }
-  });
+    });
+
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    return sorted.slice(start, end);
+  }, [mockVeiculos, sortField, sortDirection, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(mockVeiculos.length / pageSize);
+
+  const handlePageChange = (page: number) => {
+    updateURL({ page });
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    updateURL({ pageSize: size, page: 1 });
+  };
 
   return (
     <div className="space-y-4">
@@ -131,7 +174,10 @@ export function VeiculosTable() {
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedRows.size === mockVeiculos.length}
+                  checked={
+                    paginatedVeiculos.length > 0 &&
+                    paginatedVeiculos.every((v) => selectedRows.has(v.id))
+                  }
                   onCheckedChange={toggleAllSelection}
                   aria-label="Selecionar todos"
                 />
@@ -218,7 +264,7 @@ export function VeiculosTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedVeiculos.map((veiculo) => (
+            {paginatedVeiculos.map((veiculo) => (
               <TableRow
                 key={veiculo.id}
                 className="cursor-pointer hover:bg-muted/50"
@@ -285,14 +331,25 @@ export function VeiculosTable() {
         </Table>
       </div>
 
-      {/* Contador de seleção */}
-      {selectedRows.size > 0 && (
-        <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-muted/50">
-          <span className="text-sm text-muted-foreground">
-            {selectedRows.size} de {mockVeiculos.length} linhas selecionadas
-          </span>
-        </div>
-      )}
+      {/* Contador de seleção e Paginação */}
+      <div className="space-y-0">
+        {selectedRows.size > 0 && (
+          <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-muted/50">
+            <span className="text-sm text-muted-foreground">
+              {selectedRows.size} de {mockVeiculos.length} linhas selecionadas
+            </span>
+          </div>
+        )}
+        
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={mockVeiculos.length}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      </div>
     </div>
   );
 }
