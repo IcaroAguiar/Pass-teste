@@ -1,0 +1,42 @@
+# Artefatos de planejamento e assistentes (não versionados - Constitution Principle I)
+.cursor/
+.specify/
+specs/
+
+# Dependências
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Ambiente
+.env
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# SQLite (manter o arquivo de banco, mas ignorar temporários)
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
