@@ -35,32 +35,20 @@ interface Veiculo {
   ultimaAlteracao: Date;
 }
 
-const mockVeiculos: Veiculo[] = [
-  {
-    id: "1",
-    titulo: "Van Executiva",
-    modo: "Privativo",
-    status: "Liberado",
-    criadoEm: new Date("2024-01-15"),
-    ultimaAlteracao: new Date("2024-11-10"),
-  },
-  {
-    id: "2",
-    titulo: "Micro-ônibus",
-    modo: "Compartilhado",
-    status: "Ocupado",
-    criadoEm: new Date("2024-02-20"),
-    ultimaAlteracao: new Date("2024-11-11"),
-  },
-  {
-    id: "3",
-    titulo: "Van Turismo",
-    modo: "Privativo",
-    status: "Liberado",
-    criadoEm: new Date("2024-03-10"),
-    ultimaAlteracao: new Date("2024-11-09"),
-  },
-];
+const mockVeiculos: Veiculo[] = Array.from({ length: 32 }, (_, i) => {
+  const modos = ["Privativo", "Compartilhado"];
+  const statuses = ["Liberado", "Ocupado", "Manutenção"];
+  const tipos = ["Van Executiva", "Micro-ônibus", "Van Turismo", "Ônibus", "Minivan"];
+  
+  return {
+    id: String(i + 1),
+    titulo: `${tipos[i % tipos.length]} ${i + 1}`,
+    modo: modos[i % modos.length],
+    status: statuses[i % statuses.length],
+    criadoEm: new Date(2024, 0, 15 + i),
+    ultimaAlteracao: new Date(2024, 10, 1 + (i % 30)),
+  };
+});
 
 type SortField = keyof Veiculo;
 type SortDirection = "asc" | "desc";
@@ -154,7 +142,7 @@ export function VeiculosTable() {
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
     return sorted.slice(start, end);
-  }, [mockVeiculos, sortField, sortDirection, currentPage, pageSize]);
+  }, [sortField, sortDirection, currentPage, pageSize]);
 
   const totalPages = Math.ceil(mockVeiculos.length / pageSize);
 
