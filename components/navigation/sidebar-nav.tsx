@@ -4,19 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Truck } from "lucide-react";
-
-const navItems = [
-  {
-    title: "Principal",
-    items: [
-      {
-        title: "Veículos",
-        href: "/veiculos",
-        icon: Truck,
-      },
-    ],
-  },
-];
+import { useLanguage } from "@/components/language-provider";
+import { useTranslations } from "@/lib/translations";
 
 interface SidebarNavProps {
   isCollapsed?: boolean;
@@ -24,6 +13,21 @@ interface SidebarNavProps {
 
 export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
+  const { language } = useLanguage();
+  const t = useTranslations(language);
+  
+  const navItems = [
+    {
+      title: t("main"),
+      items: [
+        {
+          title: t("vehicles"),
+          href: "/veiculos",
+          icon: Truck,
+        },
+      ],
+    },
+  ];
 
   return (
     <nav className={cn("space-y-6 w-full", isCollapsed && "space-y-4")}>

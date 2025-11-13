@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider } from "@/components/language-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 const Geist = localFont({
@@ -30,15 +31,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning className={`${Geist.variable} antialiased`}>
       <body className={Geist.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          storageKey="pass-theme"
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <LanguageProvider defaultLanguage="pt" storageKey="pass-language">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            storageKey="pass-theme"
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -20,11 +20,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS, es } from "date-fns/locale";
 import Link from "next/link";
 import { Pagination } from "./pagination";
 import { Toolbar } from "./toolbar";
 import { useVeiculos } from "./veiculos-context";
+import { useLanguage } from "@/components/language-provider";
+import { useTranslations } from "@/lib/translations";
 
 // Dados mockados
 interface Veiculo {
@@ -63,7 +65,11 @@ type SortDirection = "asc" | "desc";
 export function VeiculosTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { language } = useLanguage();
+  const t = useTranslations(language);
   const { searchTerm, filters } = useVeiculos();
+  
+  const dateLocale = language === "pt" ? ptBR : language === "en" ? enUS : es;
   
   // Estado da paginação local (não na URL)
   const [currentPage, setCurrentPage] = useState(1);
@@ -129,7 +135,7 @@ export function VeiculosTable() {
   };
 
   const formatDate = (date: Date) => {
-    return format(date, "dd/MM/yyyy", { locale: ptBR });
+    return format(date, "dd/MM/yyyy", { locale: dateLocale });
   };
 
   // Filtros e busca
@@ -244,10 +250,10 @@ export function VeiculosTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("id")}
                 >
-                  Identificador
+                  {t("identifier")}
                   {getSortIcon("id")}
                 </Button>
               </TableHead>
@@ -255,10 +261,10 @@ export function VeiculosTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("titulo")}
                 >
-                  Titulo
+                  {t("title")}
                   {getSortIcon("titulo")}
                 </Button>
               </TableHead>
@@ -266,10 +272,10 @@ export function VeiculosTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("marca")}
                 >
-                  Marca
+                  {t("brand")}
                   {getSortIcon("marca")}
                 </Button>
               </TableHead>
@@ -277,10 +283,10 @@ export function VeiculosTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("placa")}
                 >
-                  Placa
+                  {t("plate")}
                   {getSortIcon("placa")}
                 </Button>
               </TableHead>
@@ -288,10 +294,10 @@ export function VeiculosTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("capacidade")}
                 >
-                  Capacidade
+                  {t("capacity")}
                   {getSortIcon("capacidade")}
                 </Button>
               </TableHead>
@@ -299,21 +305,21 @@ export function VeiculosTable() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("criadoEm")}
                 >
-                  Criado em
+                  {t("createdAt")}
                   {getSortIcon("criadoEm")}
                 </Button>
               </TableHead>
-              <TableHead className="w-[120px] pl-24">
+              <TableHead className="w-[120px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
                   onClick={() => handleSort("status")}
                 >
-                  Status
+                  {t("status")}
                   {getSortIcon("status")}
                 </Button>
               </TableHead>
@@ -337,7 +343,7 @@ export function VeiculosTable() {
                     aria-label={`Selecionar veículo ${veiculo.id}`}
                   />
                 </TableCell>
-                <TableCell className="font-mono text-sm">{veiculo.id}</TableCell>
+                <TableCell className="text-sm">{veiculo.id}</TableCell>
                 <TableCell>
                   <Link
                     href={`/veiculos/${veiculo.id}`}
@@ -348,9 +354,9 @@ export function VeiculosTable() {
                   </Link>
                 </TableCell>
                 <TableCell>{veiculo.marca}</TableCell>
-                <TableCell className="font-mono text-sm">{veiculo.placa}</TableCell>
+                <TableCell className="text-sm">{veiculo.placa}</TableCell>
                 <TableCell>{veiculo.capacidade} lugares</TableCell>
-                <TableCell className="font-mono text-sm">
+                <TableCell className="text-sm">
                   {formatDate(veiculo.criadoEm)}
                 </TableCell>
                 <TableCell>

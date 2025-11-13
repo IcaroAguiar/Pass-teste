@@ -1,7 +1,11 @@
+"use client"
+
 import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { VeiculosTable } from "@/components/veiculos/veiculos-table";
 import { VeiculosProvider } from "@/components/veiculos/veiculos-context";
+import { useLanguage } from "@/components/language-provider";
+import { useTranslations } from "@/lib/translations";
 
 function VeiculosTableWrapper() {
   return (
@@ -13,14 +17,21 @@ function VeiculosTableWrapper() {
   );
 }
 
-export default function VeiculosPage() {
+function VeiculosPageContent() {
+  const { language } = useLanguage();
+  const t = useTranslations(language);
+  
   return (
     <AppShell>
       <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Veículos</h1>
+        <h1 className="text-2xl font-semibold mb-4">{t("vehicles")}</h1>
         <VeiculosTableWrapper />
       </div>
     </AppShell>
   );
+}
+
+export default function VeiculosPage() {
+  return <VeiculosPageContent />;
 }
 

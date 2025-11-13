@@ -11,15 +11,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useLanguage } from "@/components/language-provider";
+import { useTranslations } from "@/lib/translations";
 
 export function GlobalActions() {
-  const [selectedLanguage, setSelectedLanguage] = useState("Português");
+  const { language, setLanguage, languageName } = useLanguage();
+  const t = useTranslations(language);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLanguageChange = (newLanguage: "pt" | "en" | "es") => {
+    setLanguage(newLanguage);
+  };
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -39,19 +46,28 @@ export function GlobalActions() {
       {/* Seletor de idioma */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="gap-2" aria-label="Selecionar idioma">
+          <Button variant="ghost" className="gap-2" aria-label={t("selectLanguage")}>
             <Globe className="h-5 w-5" />
-            <span>{selectedLanguage}</span>
+            <span>{languageName}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setSelectedLanguage("Português")}>
+          <DropdownMenuItem 
+            onSelect={() => handleLanguageChange("pt")}
+            className={language === "pt" ? "bg-accent" : ""}
+          >
             Português
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setSelectedLanguage("English")}>
+          <DropdownMenuItem 
+            onSelect={() => handleLanguageChange("en")}
+            className={language === "en" ? "bg-accent" : ""}
+          >
             English
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setSelectedLanguage("Español")}>
+          <DropdownMenuItem 
+            onSelect={() => handleLanguageChange("es")}
+            className={language === "es" ? "bg-accent" : ""}
+          >
             Español
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -62,7 +78,7 @@ export function GlobalActions() {
         variant="ghost" 
         size="icon"
         onClick={toggleTheme}
-        aria-label="Alternar tema"
+        aria-label={t("toggleTheme")}
       >
         {mounted ? (
           theme === "dark" ? (
@@ -87,7 +103,7 @@ export function GlobalActions() {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem>
             <User className="mr-2 h-4 w-4" />
-            <span>Perfil</span>
+            <span>{t("profile")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -13,8 +13,12 @@ import {
 import { FilterChips } from "@/components/veiculos/filter-chips";
 import { useVeiculos } from "./veiculos-context";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/language-provider";
+import { useTranslations } from "@/lib/translations";
 
 export function Toolbar() {
+  const { language } = useLanguage();
+  const t = useTranslations(language);
   const { searchTerm, setSearchTerm, refreshData } = useVeiculos();
   const router = useRouter();
 
@@ -37,7 +41,7 @@ export function Toolbar() {
           <div className="relative w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar..."
+              placeholder={t("search")}
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,7 +91,7 @@ export function Toolbar() {
           {/* Adicionar */}
           <Button onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" />
-            Adicionar
+            {t("addVehicle")}
           </Button>
         </div>
       </div>

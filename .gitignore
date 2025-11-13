@@ -40,3 +40,21 @@ Thumbs.db
 *.sqlite-shm
 *.sqlite-wal
 
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testes
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporários
+*.tmp
+*.temp
+.cache/
+

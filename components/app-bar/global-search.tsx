@@ -11,8 +11,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useLanguage } from "@/components/language-provider";
+import { useTranslations } from "@/lib/translations";
 
 export function GlobalSearch() {
+  const { language } = useLanguage();
+  const t = useTranslations(language);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -45,17 +49,17 @@ export function GlobalSearch() {
         onClick={() => setOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />
-        Buscar...
+        {t("search")}
         <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
           <span className="text-xs">CTRL</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Buscar..." />
+        <CommandInput placeholder={t("search")} />
         <CommandList>
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
           <CommandGroup heading="Sugestões">
-            <CommandItem>Buscar veículos</CommandItem>
+            <CommandItem>{t("vehicles")}</CommandItem>
           </CommandGroup>
         </CommandList>
       </CommandDialog>
