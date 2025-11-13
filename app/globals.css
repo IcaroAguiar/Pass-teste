@@ -36,9 +36,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --color-transition-duration: 320ms;
     --view-transition-duration: 1.7s;
-    --view-transition-duration-theme: 320ms;
   }
 
   .dark {
@@ -72,9 +70,6 @@
 @layer base {
   * {
     @apply border-border;
-    transition-property: background-color, border-color, color, fill, stroke;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: var(--color-transition-duration);
   }
   
   html {
@@ -93,10 +88,6 @@
   :root {
     --expo-out: linear(0 0%, 0.1684 2.66%, 0.3165 5.49%, 0.446 8.52%, 0.5581 11.78%, 0.6535 15.29%, 0.7341 19.11%, 0.8011 23.3%, 0.8557 27.93%, 0.8962 32.68%, 0.9283 38.01%, 0.9529 44.08%, 0.9711 51.14%, 0.9833 59.06%, 0.9915 68.74%, 1 100%);
   }
-  
-  .theme-transitioning {
-    --color-transition-duration: 180ms;
-  }
 }
 
 /* ====== View Transitions: garantir APENAS top-left ====== */
@@ -114,12 +105,6 @@
 ::view-transition-new(root),
 ::view-transition-old(root) {
   transform-origin: top left;
-}
-
-.theme-transitioning::view-transition-group(root),
-.theme-transitioning::view-transition-new(root),
-.theme-transitioning::view-transition-old(root) {
-  animation-duration: var(--view-transition-duration-theme);
 }
 
 /* 3) Animações espelhadas com clip-path circular fixo no top-left */

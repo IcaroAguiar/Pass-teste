@@ -22,34 +22,16 @@ export function GlobalActions() {
   }, []);
 
   const toggleTheme = () => {
-    if (!mounted || typeof document === "undefined") {
-      return;
-    }
-
-    const html = document.documentElement;
     const nextTheme = theme === "dark" ? "light" : "dark";
-
-    const cleanup = () => {
-      html.classList.remove("theme-transitioning");
-    };
-
-    const runThemeUpdate = () => {
-      setTheme(nextTheme);
-    };
-
-    html.classList.add("theme-transitioning");
-
+    
     if (!document.startViewTransition) {
-      runThemeUpdate();
-      window.setTimeout(cleanup, 320);
+      setTheme(nextTheme);
       return;
     }
 
-    const transition = document.startViewTransition(() => {
-      runThemeUpdate();
+    document.startViewTransition(() => {
+      setTheme(nextTheme);
     });
-
-    transition.finished.finally(cleanup);
   };
 
   return (
