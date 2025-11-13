@@ -26,15 +26,15 @@ export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className={cn("space-y-6", isCollapsed && "space-y-4")}>
+    <nav className={cn("space-y-6 w-full", isCollapsed && "space-y-4")}>
       {navItems.map((group) => (
-        <div key={group.title} className="space-y-2">
+        <div key={group.title} className={cn("space-y-2", isCollapsed && "flex flex-col items-center")}>
           {!isCollapsed && (
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2">
+            <h3 className="text-xs font-medium text-white uppercase tracking-wider px-2">
               {group.title}
             </h3>
           )}
-          <div className="space-y-1">
+          <div className={cn("space-y-1", isCollapsed && "flex flex-col items-center w-full")}>
             {group.items.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -46,15 +46,15 @@ export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
                   className={cn(
                     "flex items-center rounded-lg transition-colors",
                     isCollapsed
-                      ? "justify-center p-2"
+                      ? "h-8 w-8 justify-center p-0"
                       : "gap-3 px-3 py-2",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-[#262626] text-white"
+                      : "text-white hover:bg-accent hover:text-accent-foreground"
                   )}
                   title={isCollapsed ? item.title : undefined}
                 >
-                  <Icon className={cn("h-4 w-4", !isCollapsed && "shrink-0")} />
+                  <Icon className={cn("h-4 w-4 text-white shrink-0")} />
                   {!isCollapsed && (
                     <span className="text-sm font-medium">{item.title}</span>
                   )}

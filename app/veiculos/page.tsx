@@ -1,12 +1,15 @@
 import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { VeiculosTable } from "@/components/veiculos/veiculos-table";
+import { VeiculosProvider } from "@/components/veiculos/veiculos-context";
 
 function VeiculosTableWrapper() {
   return (
-    <Suspense fallback={<div className="p-6">Carregando...</div>}>
-      <VeiculosTable />
-    </Suspense>
+    <VeiculosProvider>
+      <Suspense fallback={<div className="p-6">Carregando...</div>}>
+        <VeiculosTable />
+      </Suspense>
+    </VeiculosProvider>
   );
 }
 

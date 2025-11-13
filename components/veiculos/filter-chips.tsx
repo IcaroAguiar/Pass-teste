@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react";
 import { X, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,25 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-type FilterType = "modo" | "status";
-
-interface Filter {
-  type: FilterType;
-  label: string;
-  value: string;
-}
+import { useVeiculos } from "./veiculos-context";
 
 export function FilterChips() {
-  const [filters, setFilters] = useState<Filter[]>([]);
-
-  const addModoFilter = (value: string) => {
-    setFilters([...filters, { type: "modo", label: `Modo: ${value}`, value }]);
-  };
-
-  const addStatusFilter = (value: string) => {
-    setFilters([...filters, { type: "status", label: `Status: ${value}`, value }]);
-  };
+  const { filters, setFilters } = useVeiculos();
 
   const removeFilter = (index: number) => {
     setFilters(filters.filter((_, i) => i !== index));
@@ -44,22 +28,22 @@ export function FilterChips() {
     setFilters([]);
   };
 
-  const modoFilter = filters.find((f) => f.type === "modo");
+  const capacidadeFilter = filters.find((f) => f.type === "capacidade");
   const statusFilter = filters.find((f) => f.type === "status");
 
   return (
     <div className="flex items-center gap-2">
-      {/* Chip Modo */}
+      {/* Chip Capacidade */}
       <Popover>
         <PopoverTrigger asChild>
           <Button
-            variant={modoFilter ? "default" : "outline"}
+            variant={capacidadeFilter ? "default" : "outline"}
             size="sm"
             className="h-10 gap-2"
           >
             <Filter className="h-3 w-3" />
-            Modo
-            {modoFilter && (
+            Capacidade
+            {capacidadeFilter && (
               <Badge variant="secondary" className="ml-1 h-5 px-1.5">
                 1
               </Badge>
@@ -68,22 +52,27 @@ export function FilterChips() {
         </PopoverTrigger>
         <PopoverContent className="w-56" align="start">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Modo</p>
+            <p className="text-sm font-medium">Capacidade</p>
             <Select
-              value={modoFilter?.value || ""}
+              value={capacidadeFilter?.value || ""}
               onValueChange={(value) => {
+                const newFilters = filters.filter((f) => f.type !== "capacidade");
                 if (value) {
-                  const newFilters = filters.filter((f) => f.type !== "modo");
-                  setFilters([...newFilters, { type: "modo", label: `Modo: ${value}`, value }]);
+                  setFilters([...newFilters, { type: "capacidade", label: `Capacidade: ${value} lugares`, value }]);
+                } else {
+                  setFilters(newFilters);
                 }
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o modo" />
+                <SelectValue placeholder="Selecione a capacidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="privativo">Privativo</SelectItem>
-                <SelectItem value="compartilhado">Compartilhado</SelectItem>
+                <SelectItem value="15">15 lugares</SelectItem>
+                <SelectItem value="20">20 lugares</SelectItem>
+                <SelectItem value="30">30 lugares</SelectItem>
+                <SelectItem value="40">40 lugares</SelectItem>
+                <SelectItem value="50">50 lugares</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -113,9 +102,11 @@ export function FilterChips() {
             <Select
               value={statusFilter?.value || ""}
               onValueChange={(value) => {
+                const newFilters = filters.filter((f) => f.type !== "status");
                 if (value) {
-                  const newFilters = filters.filter((f) => f.type !== "status");
                   setFilters([...newFilters, { type: "status", label: `Status: ${value}`, value }]);
+                } else {
+                  setFilters(newFilters);
                 }
               }}
             >

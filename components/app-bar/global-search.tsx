@@ -17,14 +17,24 @@ export function GlobalSearch() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      // Verifica se Ctrl+K (Windows/Linux) ou Cmd+K (Mac) foi pressionado
+      if (
+        (e.key === "k" || e.key === "K") &&
+        (e.metaKey || e.ctrlKey) &&
+        !e.shiftKey &&
+        !e.altKey
+      ) {
+        // Previne comportamento padrão do navegador
         e.preventDefault();
-        setOpen((open) => !open);
+        e.stopPropagation();
+        // Abre o dialog (ou fecha se já estiver aberto)
+        setOpen((prev) => !prev);
       }
     };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    // Adiciona o listener no documento para capturar em qualquer lugar
+    document.addEventListener("keydown", down, true);
+    return () => document.removeEventListener("keydown", down, true);
   }, []);
 
   return (

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react";
-import { ArrowUpDown, MoreHorizontal, Circle } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal, Circle } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Table,
@@ -24,6 +24,7 @@ import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { Pagination } from "./pagination";
 import { Toolbar } from "./toolbar";
+import { useVeiculos } from "./veiculos-context";
 
 // Dados mockados
 interface Veiculo {
@@ -62,6 +63,7 @@ type SortDirection = "asc" | "desc";
 export function VeiculosTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { searchTerm, filters } = useVeiculos();
   
   // Estado da paginação local (não na URL)
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,6 +94,17 @@ export function VeiculosTable() {
     updateURL({ sortField: field, sortDirection: newDirection });
   };
 
+  const getSortIcon = (field: SortField) => {
+    if (sortField === field) {
+      return sortDirection === "asc" ? (
+        <ArrowUp className="h-3 w-3" />
+      ) : (
+        <ArrowDown className="h-3 w-3" />
+      );
+    }
+    return <ArrowUpDown className="h-3 w-3 opacity-50" />;
+  };
+
   const toggleRowSelection = (id: string) => {
     const newSelected = new Set(selectedRows);
     if (newSelected.has(id)) {
@@ -119,9 +132,45 @@ export function VeiculosTable() {
     return format(date, "dd/MM/yyyy", { locale: ptBR });
   };
 
+  // Filtros e busca
+  const filteredVeiculos = useMemo(() => {
+    let filtered = [...mockVeiculos];
+
+    // Aplicar busca
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (v) =>
+          v.titulo.toLowerCase().includes(term) ||
+          v.marca.toLowerCase().includes(term) ||
+          v.placa.toLowerCase().includes(term) ||
+          v.id.toLowerCase().includes(term) ||
+          v.status.toLowerCase().includes(term)
+      );
+    }
+
+    // Aplicar filtros
+    filters.forEach((filter) => {
+      if (filter.type === "status") {
+        const statusMap: Record<string, string> = {
+          liberado: "Liberado",
+          ocupado: "Ocupado",
+          manutencao: "Manutenção",
+        };
+        filtered = filtered.filter((v) => v.status === statusMap[filter.value]);
+      }
+      if (filter.type === "capacidade") {
+        const capacidade = parseInt(filter.value);
+        filtered = filtered.filter((v) => v.capacidade === capacidade);
+      }
+    });
+
+    return filtered;
+  }, [searchTerm, filters]);
+
   // Paginação
   const paginatedVeiculos = useMemo(() => {
-    const sorted = [...mockVeiculos].sort((a, b) => {
+    const sorted = [...filteredVeiculos].sort((a, b) => {
     if (!sortField) return 0;
     
     const aValue = a[sortField];
@@ -156,9 +205,9 @@ export function VeiculosTable() {
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
     return sorted.slice(start, end);
-  }, [sortField, sortDirection, currentPage, pageSize]);
+  }, [filteredVeiculos, sortField, sortDirection, currentPage, pageSize]);
 
-  const totalPages = Math.ceil(mockVeiculos.length / pageSize);
+  const totalPages = Math.ceil(filteredVeiculos.length / pageSize);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -168,6 +217,11 @@ export function VeiculosTable() {
     setPageSize(size);
     setCurrentPage(1);
   };
+
+  // Resetar página quando filtros ou busca mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filters]);
 
   return (
     <div className="space-y-0">
@@ -194,9 +248,7 @@ export function VeiculosTable() {
                   onClick={() => handleSort("id")}
                 >
                   Identificador
-                  {sortField === "id" && (
-                    <ArrowUpDown className="h-3 w-3" />
-                  )}
+                  {getSortIcon("id")}
                 </Button>
               </TableHead>
               <TableHead className="w-[160px]">
@@ -207,9 +259,7 @@ export function VeiculosTable() {
                   onClick={() => handleSort("titulo")}
                 >
                   Titulo
-                  {sortField === "titulo" && (
-                    <ArrowUpDown className="h-3 w-3" />
-                  )}
+                  {getSortIcon("titulo")}
                 </Button>
               </TableHead>
               <TableHead className="w-[130px]">
@@ -220,9 +270,7 @@ export function VeiculosTable() {
                   onClick={() => handleSort("marca")}
                 >
                   Marca
-                  {sortField === "marca" && (
-                    <ArrowUpDown className="h-3 w-3" />
-                  )}
+                  {getSortIcon("marca")}
                 </Button>
               </TableHead>
               <TableHead className="w-[110px]">
@@ -233,9 +281,7 @@ export function VeiculosTable() {
                   onClick={() => handleSort("placa")}
                 >
                   Placa
-                  {sortField === "placa" && (
-                    <ArrowUpDown className="h-3 w-3" />
-                  )}
+                  {getSortIcon("placa")}
                 </Button>
               </TableHead>
               <TableHead className="w-[110px]">
@@ -246,25 +292,19 @@ export function VeiculosTable() {
                   onClick={() => handleSort("capacidade")}
                 >
                   Capacidade
-                  {sortField === "capacidade" && (
-                    <ArrowUpDown className="h-3 w-3" />
-                  )}
+                  {getSortIcon("capacidade")}
                 </Button>
               </TableHead>
-              <TableHead className="w-[120px] text-right pr-24">
-                <div className="flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs"
-                    onClick={() => handleSort("criadoEm")}
-                  >
-                    Criado em
-                    {sortField === "criadoEm" && (
-                      <ArrowUpDown className="h-3 w-3" />
-                    )}
-                  </Button>
-                </div>
+              <TableHead className="w-[120px]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
+                  onClick={() => handleSort("criadoEm")}
+                >
+                  Criado em
+                  {getSortIcon("criadoEm")}
+                </Button>
               </TableHead>
               <TableHead className="w-[120px] pl-24">
                 <Button
@@ -274,9 +314,7 @@ export function VeiculosTable() {
                   onClick={() => handleSort("status")}
                 >
                   Status
-                  {sortField === "status" && (
-                    <ArrowUpDown className="h-3 w-3" />
-                  )}
+                  {getSortIcon("status")}
                 </Button>
               </TableHead>
               <TableHead className="w-12"></TableHead>
@@ -312,10 +350,10 @@ export function VeiculosTable() {
                 <TableCell>{veiculo.marca}</TableCell>
                 <TableCell className="font-mono text-sm">{veiculo.placa}</TableCell>
                 <TableCell>{veiculo.capacidade} lugares</TableCell>
-                <TableCell className="text-right font-mono text-sm pr-24">
+                <TableCell className="font-mono text-sm">
                   {formatDate(veiculo.criadoEm)}
                 </TableCell>
-                <TableCell className="pl-24">
+                <TableCell>
                   <div className="flex items-center gap-2">
                     <Circle
                       className={`h-2 w-2 opacity-60 ${
@@ -359,7 +397,7 @@ export function VeiculosTable() {
         {selectedRows.size > 0 && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-muted/50">
             <span className="text-sm text-muted-foreground">
-              {selectedRows.size} de {mockVeiculos.length} linhas selecionadas
+              {selectedRows.size} de {filteredVeiculos.length} linhas selecionadas
             </span>
           </div>
         )}
@@ -368,7 +406,7 @@ export function VeiculosTable() {
           currentPage={currentPage}
           totalPages={totalPages}
           pageSize={pageSize}
-          totalItems={mockVeiculos.length}
+          totalItems={filteredVeiculos.length}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
         />

@@ -21,11 +21,11 @@ export function Sidebar() {
         isCollapsed ? "justify-center px-0" : "px-6"
       )}>
         {isCollapsed ? (
-          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground text-sm font-semibold">P</span>
+          <div className="h-8 w-8 rounded-md bg-[#262626] flex items-center justify-center">
+            <span className="text-white text-base font-semibold leading-none">P</span>
           </div>
         ) : (
-          <h1 className="text-xl font-semibold text-foreground">
+          <h1 className="text-xl font-semibold text-white">
             Pass
           </h1>
         )}
@@ -34,7 +34,7 @@ export function Sidebar() {
       {/* Navegação */}
       <ScrollArea className="flex-1">
         <div className={cn(
-          "transition-all duration-300",
+          "transition-all duration-300 flex flex-col items-center",
           isCollapsed ? "p-2" : "p-4"
         )}>
           <SidebarNav isCollapsed={isCollapsed} />
