@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, Circle } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Table,
@@ -12,7 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,24 +29,30 @@ import { Toolbar } from "./toolbar";
 interface Veiculo {
   id: string;
   titulo: string;
-  modo: string;
+  marca: string;
+  placa: string;
+  capacidade: number;
   status: string;
   criadoEm: Date;
-  ultimaAlteracao: Date;
 }
 
 const mockVeiculos: Veiculo[] = Array.from({ length: 32 }, (_, i) => {
-  const modos = ["Privativo", "Compartilhado"];
+  const marcas = ["Mercedes-Benz", "Volvo", "Scania", "Volkswagen", "Iveco"];
   const statuses = ["Liberado", "Ocupado", "Manutenção"];
   const tipos = ["Van Executiva", "Micro-ônibus", "Van Turismo", "Ônibus", "Minivan"];
+  const letras = ["ABC", "DEF", "GHI", "JKL", "MNO", "PQR", "STU", "VWX"];
+  
+  const letraIndex = Math.floor(i / 4) % letras.length;
+  const numero = String(1000 + (i % 9000)).padStart(4, "0");
   
   return {
     id: String(i + 1),
     titulo: `${tipos[i % tipos.length]} ${i + 1}`,
-    modo: modos[i % modos.length],
+    marca: marcas[i % marcas.length],
+    placa: `${letras[letraIndex]}-${numero}`,
+    capacidade: [15, 20, 30, 40, 50][i % 5],
     status: statuses[i % statuses.length],
     criadoEm: new Date(2024, 0, 15 + i),
-    ultimaAlteracao: new Date(2024, 10, 1 + (i % 30)),
   };
 });
 
@@ -122,12 +127,20 @@ export function VeiculosTable() {
     const aValue = a[sortField];
     const bValue = b[sortField];
 
-    if (sortField === "criadoEm" || sortField === "ultimaAlteracao") {
+    if (sortField === "criadoEm") {
       const aDate = aValue as Date;
       const bDate = bValue as Date;
       return sortDirection === "asc"
         ? aDate.getTime() - bDate.getTime()
         : bDate.getTime() - aDate.getTime();
+    }
+
+    if (sortField === "capacidade") {
+      const aNum = aValue as number;
+      const bNum = bValue as number;
+      return sortDirection === "asc"
+        ? aNum - bNum
+        : bNum - aNum;
     }
 
     const aStr = String(aValue).toLowerCase();
@@ -158,7 +171,7 @@ export function VeiculosTable() {
 
   return (
     <div className="space-y-0">
-      <div className="rounded-md border border-border">
+      <div className="rounded-md border border-border dark:border-[#2D2E2E]">
         <Toolbar />
         <Table>
           <TableHeader>
@@ -173,80 +186,95 @@ export function VeiculosTable() {
                   aria-label="Selecionar todos"
                 />
               </TableHead>
-              <TableHead>
+              <TableHead className="w-[100px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2"
+                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
                   onClick={() => handleSort("id")}
                 >
-                  ID
+                  Identificador
                   {sortField === "id" && (
                     <ArrowUpDown className="h-4 w-4" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead>
+              <TableHead className="min-w-[180px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2"
+                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
                   onClick={() => handleSort("titulo")}
                 >
-                  Título
+                  Titulo
                   {sortField === "titulo" && (
                     <ArrowUpDown className="h-4 w-4" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead>
+              <TableHead className="min-w-[140px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2"
-                  onClick={() => handleSort("modo")}
+                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  onClick={() => handleSort("marca")}
                 >
-                  Modo
-                  {sortField === "modo" && (
+                  Marca
+                  {sortField === "marca" && (
                     <ArrowUpDown className="h-4 w-4" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead>
+              <TableHead className="w-[120px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2"
+                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  onClick={() => handleSort("placa")}
+                >
+                  Placa
+                  {sortField === "placa" && (
+                    <ArrowUpDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[120px]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  onClick={() => handleSort("capacidade")}
+                >
+                  Capacidade
+                  {sortField === "capacidade" && (
+                    <ArrowUpDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[130px] text-right">
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-2"
+                    onClick={() => handleSort("criadoEm")}
+                  >
+                    Criado em
+                    {sortField === "criadoEm" && (
+                      <ArrowUpDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </TableHead>
+              <TableHead className="w-[140px]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
                   onClick={() => handleSort("status")}
                 >
                   Status
                   {sortField === "status" && (
-                    <ArrowUpDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </TableHead>
-              <TableHead className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 gap-2"
-                  onClick={() => handleSort("criadoEm")}
-                >
-                  Criado em
-                  {sortField === "criadoEm" && (
-                    <ArrowUpDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </TableHead>
-              <TableHead className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 gap-2"
-                  onClick={() => handleSort("ultimaAlteracao")}
-                >
-                  Última Alteração
-                  {sortField === "ultimaAlteracao" && (
                     <ArrowUpDown className="h-4 w-4" />
                   )}
                 </Button>
@@ -281,23 +309,27 @@ export function VeiculosTable() {
                     {veiculo.titulo}
                   </Link>
                 </TableCell>
-                <TableCell>{veiculo.modo}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={veiculo.status === "Liberado" ? "default" : "secondary"}
-                    className="gap-1.5"
-                  >
-                    {veiculo.status === "Liberado" && (
-                      <span className="h-2 w-2 rounded-full bg-green-500" />
-                    )}
-                    {veiculo.status}
-                  </Badge>
-                </TableCell>
+                <TableCell>{veiculo.marca}</TableCell>
+                <TableCell className="font-mono text-sm">{veiculo.placa}</TableCell>
+                <TableCell>{veiculo.capacidade} lugares</TableCell>
                 <TableCell className="text-right font-mono text-sm">
                   {formatDate(veiculo.criadoEm)}
                 </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  {formatDate(veiculo.ultimaAlteracao)}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Circle
+                      className={`h-3 w-3 ${
+                        veiculo.status === "Liberado"
+                          ? "fill-green-500 text-green-500"
+                          : veiculo.status === "Ocupado"
+                          ? "fill-red-500 text-red-500"
+                          : veiculo.status === "Manutenção"
+                          ? "fill-yellow-500 text-yellow-500"
+                          : "fill-gray-500 text-gray-500"
+                      }`}
+                    />
+                    <span>{veiculo.status}</span>
+                  </div>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>

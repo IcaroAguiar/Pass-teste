@@ -30,7 +30,7 @@ export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
       {navItems.map((group) => (
         <div key={group.title} className="space-y-2">
           {!isCollapsed && (
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2">
               {group.title}
             </h3>
           )}

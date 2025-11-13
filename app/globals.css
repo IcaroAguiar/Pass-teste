@@ -36,27 +36,30 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --color-transition-duration: 320ms;
+    --view-transition-duration: 1.7s;
+    --view-transition-duration-theme: 320ms;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 0 0% 8.6%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 0 0% 8.6%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 0 0% 8.6%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 0 0% 8.6%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --accent: 0 0% 8.6%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 0 0% 8.6%;
+    --input: 0 0% 8.6%;
     --ring: 240 4.9% 83.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -71,70 +74,71 @@
     @apply border-border;
     transition-property: background-color, border-color, color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 600ms;
+    transition-duration: var(--color-transition-duration);
   }
   
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition-property: background-color, color;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 600ms;
     position: relative;
-  }
-  
-  html::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    background: hsl(var(--background));
-    opacity: 0;
-    transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  html.theme-transitioning::before {
-    opacity: 0.95;
-    animation: themeFadeIn 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-  
-  @keyframes themeFadeIn {
-    0% {
-      opacity: 0;
-      transform: scale(0.98);
-    }
-    30% {
-      opacity: 0.95;
-      transform: scale(1);
-    }
-    70% {
-      opacity: 0.95;
-      transform: scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(1);
-    }
   }
   
   body {
     @apply bg-background text-foreground font-sans;
     font-size: 14px;
     line-height: 20px;
-    transition-property: background-color, color;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 600ms;
   }
   
-  /* Garantir que todos os elementos principais tenham transição */
-  aside, header, main, div, section, article {
-    transition-property: background-color, border-color, color;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 600ms;
+  /* curvas de animação usadas no site */
+  :root {
+    --expo-out: linear(0 0%, 0.1684 2.66%, 0.3165 5.49%, 0.446 8.52%, 0.5581 11.78%, 0.6535 15.29%, 0.7341 19.11%, 0.8011 23.3%, 0.8557 27.93%, 0.8962 32.68%, 0.9283 38.01%, 0.9529 44.08%, 0.9711 51.14%, 0.9833 59.06%, 0.9915 68.74%, 1 100%);
+  }
+  
+  .theme-transitioning {
+    --color-transition-duration: 180ms;
   }
 }
 
+/* ====== View Transitions: garantir APENAS top-left ====== */
+/* Fora do @layer base para garantir ordem correta e evitar conflitos */
+/* 1) Somente o :root participa da transição */
+* { view-transition-name: none; }
+:root { view-transition-name: root; }
+
+/* 2) Mesmo ponto de origem para "new" e "old" (top-left) */
+::view-transition-group(root) {
+  animation-timing-function: var(--expo-out);
+  animation-duration: var(--view-transition-duration);
+}
+
+::view-transition-new(root),
+::view-transition-old(root) {
+  transform-origin: top left;
+}
+
+.theme-transitioning::view-transition-group(root),
+.theme-transitioning::view-transition-new(root),
+.theme-transitioning::view-transition-old(root) {
+  animation-duration: var(--view-transition-duration-theme);
+}
+
+/* 3) Animações espelhadas com clip-path circular fixo no top-left */
+::view-transition-new(root) {
+  animation-name: tl-reveal;
+}
+
+::view-transition-old(root) {
+  animation-name: tl-hide;
+  z-index: -1; /* evita "dupla origem" ao sobrepor */
+}
+
+/* Use 200vmax para garantir cobertura total da viewport */
+@keyframes tl-reveal {
+  from { clip-path: circle(0px at 0 0); }
+  to   { clip-path: circle(200vmax at 0 0); }
+}
+
+@keyframes tl-hide {
+  from { clip-path: circle(200vmax at 0 0); }
+  to   { clip-path: circle(0px at 0 0); }
+}

@@ -21,13 +21,35 @@ export function GlobalActions() {
     setMounted(true);
   }, []);
 
-  const handleThemeChange = (newTheme: string) => {
+  const toggleTheme = () => {
+    if (!mounted || typeof document === "undefined") {
+      return;
+    }
+
     const html = document.documentElement;
-    html.classList.add("theme-transitioning");
-    setTheme(newTheme);
-    setTimeout(() => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+
+    const cleanup = () => {
       html.classList.remove("theme-transitioning");
-    }, 600);
+    };
+
+    const runThemeUpdate = () => {
+      setTheme(nextTheme);
+    };
+
+    html.classList.add("theme-transitioning");
+
+    if (!document.startViewTransition) {
+      runThemeUpdate();
+      window.setTimeout(cleanup, 320);
+      return;
+    }
+
+    const transition = document.startViewTransition(() => {
+      runThemeUpdate();
+    });
+
+    transition.finished.finally(cleanup);
   };
 
   return (
@@ -53,35 +75,23 @@ export function GlobalActions() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Seletor de tema */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="gap-2" aria-label="Selecionar tema">
-            {mounted ? (
-              theme === "dark" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
-            <span>
-              {mounted ? (theme === "dark" ? "Escuro" : "Claro") : "Claro"}
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleThemeChange("light")}>
-            <Sun className="mr-2 h-4 w-4" />
-            <span>Claro</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
-            <Moon className="mr-2 h-4 w-4" />
-            <span>Escuro</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Botão de tema - toggle direto */}
+      <Button 
+        variant="ghost" 
+        size="icon"
+        onClick={toggleTheme}
+        aria-label="Alternar tema"
+      >
+        {mounted ? (
+          theme === "dark" ? (
+            <Moon className="h-5 w-5" />
+          ) : (
+            <Sun className="h-5 w-5" />
+          )
+        ) : (
+          <Sun className="h-5 w-5" />
+        )}
+      </Button>
 
       {/* Avatar/Perfil */}
       <DropdownMenu>
@@ -102,4 +112,3 @@ export function GlobalActions() {
     </div>
   );
 }
-
