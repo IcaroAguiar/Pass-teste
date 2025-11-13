@@ -11,7 +11,7 @@ export function AppBar() {
   const { isCollapsed, toggleSidebar } = useSidebar();
 
   return (
-    <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6">
+    <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6 rounded-b-3xl">
       <div className="flex items-center gap-4 flex-1">
         <Button
           variant="ghost"

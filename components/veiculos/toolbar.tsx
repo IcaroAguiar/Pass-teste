@@ -14,7 +14,7 @@ import { FilterChips } from "@/components/veiculos/filter-chips";
 
 export function Toolbar() {
   return (
-    <div className="border-b border-border bg-card rounded-t-md dark:border-b-[#2D2E2E]">
+    <div className="border-b border-border bg-card rounded-t-2xl dark:border-b-[#2D2E2E]">
       <div className="flex items-center justify-between px-6 py-4 gap-4 border-x border-t border-border dark:border-[#2D2E2E]">
         {/* Lado esquerdo: Seleção em massa, busca local, filtros */}
         <div className="flex items-center gap-4 flex-1">

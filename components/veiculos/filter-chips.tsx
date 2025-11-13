@@ -55,7 +55,7 @@ export function FilterChips() {
           <Button
             variant={modoFilter ? "default" : "outline"}
             size="sm"
-            className="h-8 gap-2"
+            className="h-10 gap-2"
           >
             <Filter className="h-3 w-3" />
             Modo
@@ -96,7 +96,7 @@ export function FilterChips() {
           <Button
             variant={statusFilter ? "default" : "outline"}
             size="sm"
-            className="h-8 gap-2"
+            className="h-10 gap-2"
           >
             <Filter className="h-3 w-3" />
             Status

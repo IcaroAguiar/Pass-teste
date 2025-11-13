@@ -13,11 +13,9 @@ function VeiculosTableWrapper() {
 export default function VeiculosPage() {
   return (
     <AppShell>
-      <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-auto p-6">
-          <h1 className="text-2xl font-semibold mb-4">Veículos</h1>
-          <VeiculosTableWrapper />
-        </div>
+      <div className="p-6">
+        <h1 className="text-2xl font-semibold mb-4">Veículos</h1>
+        <VeiculosTableWrapper />
       </div>
     </AppShell>
   );

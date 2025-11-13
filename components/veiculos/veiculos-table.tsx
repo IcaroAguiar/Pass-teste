@@ -171,7 +171,7 @@ export function VeiculosTable() {
 
   return (
     <div className="space-y-0">
-      <div className="rounded-md border border-border dark:border-[#2D2E2E]">
+      <div className="rounded-2xl border border-border dark:border-[#2D2E2E] overflow-hidden">
         <Toolbar />
         <Table>
           <TableHeader>
@@ -186,96 +186,96 @@ export function VeiculosTable() {
                   aria-label="Selecionar todos"
                 />
               </TableHead>
-              <TableHead className="w-[100px]">
+              <TableHead className="w-[90px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
                   onClick={() => handleSort("id")}
                 >
                   Identificador
                   {sortField === "id" && (
-                    <ArrowUpDown className="h-4 w-4" />
+                    <ArrowUpDown className="h-3 w-3" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead className="min-w-[180px]">
+              <TableHead className="w-[160px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
                   onClick={() => handleSort("titulo")}
                 >
                   Titulo
                   {sortField === "titulo" && (
-                    <ArrowUpDown className="h-4 w-4" />
+                    <ArrowUpDown className="h-3 w-3" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead className="min-w-[140px]">
+              <TableHead className="w-[130px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
                   onClick={() => handleSort("marca")}
                 >
                   Marca
                   {sortField === "marca" && (
-                    <ArrowUpDown className="h-4 w-4" />
+                    <ArrowUpDown className="h-3 w-3" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead className="w-[120px]">
+              <TableHead className="w-[110px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
                   onClick={() => handleSort("placa")}
                 >
                   Placa
                   {sortField === "placa" && (
-                    <ArrowUpDown className="h-4 w-4" />
+                    <ArrowUpDown className="h-3 w-3" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead className="w-[120px]">
+              <TableHead className="w-[110px]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
                   onClick={() => handleSort("capacidade")}
                 >
                   Capacidade
                   {sortField === "capacidade" && (
-                    <ArrowUpDown className="h-4 w-4" />
+                    <ArrowUpDown className="h-3 w-3" />
                   )}
                 </Button>
               </TableHead>
-              <TableHead className="w-[130px] text-right">
+              <TableHead className="w-[120px] text-right pr-24">
                 <div className="flex justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 gap-2"
+                    className="h-7 gap-1.5 text-xs"
                     onClick={() => handleSort("criadoEm")}
                   >
                     Criado em
                     {sortField === "criadoEm" && (
-                      <ArrowUpDown className="h-4 w-4" />
+                      <ArrowUpDown className="h-3 w-3" />
                     )}
                   </Button>
                 </div>
               </TableHead>
-              <TableHead className="w-[140px]">
+              <TableHead className="w-[120px] pl-24">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-2 w-full justify-start -ml-4 px-4"
+                  className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-xs"
                   onClick={() => handleSort("status")}
                 >
                   Status
                   {sortField === "status" && (
-                    <ArrowUpDown className="h-4 w-4" />
+                    <ArrowUpDown className="h-3 w-3" />
                   )}
                 </Button>
               </TableHead>
@@ -312,13 +312,13 @@ export function VeiculosTable() {
                 <TableCell>{veiculo.marca}</TableCell>
                 <TableCell className="font-mono text-sm">{veiculo.placa}</TableCell>
                 <TableCell>{veiculo.capacidade} lugares</TableCell>
-                <TableCell className="text-right font-mono text-sm">
+                <TableCell className="text-right font-mono text-sm pr-24">
                   {formatDate(veiculo.criadoEm)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="pl-24">
                   <div className="flex items-center gap-2">
                     <Circle
-                      className={`h-3 w-3 ${
+                      className={`h-2 w-2 opacity-60 ${
                         veiculo.status === "Liberado"
                           ? "fill-green-500 text-green-500"
                           : veiculo.status === "Ocupado"

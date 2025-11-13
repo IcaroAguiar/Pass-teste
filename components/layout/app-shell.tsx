@@ -17,8 +17,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <AppBar />
           
           {/* Conteúdo */}
-          <main className="flex-1 overflow-y-auto">
-            {children}
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="rounded-3xl bg-card border border-border dark:border-[#2D2E2E] overflow-hidden">
+              {children}
+            </div>
           </main>
         </div>
       </div>
