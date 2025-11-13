@@ -18,16 +18,22 @@ const navItems = [
   },
 ];
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  isCollapsed?: boolean;
+}
+
+export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-6">
+    <nav className={cn("space-y-6", isCollapsed && "space-y-4")}>
       {navItems.map((group) => (
         <div key={group.title} className="space-y-2">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-            {group.title}
-          </h3>
+          {!isCollapsed && (
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+              {group.title}
+            </h3>
+          )}
           <div className="space-y-1">
             {group.items.map((item) => {
               const Icon = item.icon;
@@ -38,14 +44,20 @@ export function SidebarNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center rounded-lg transition-colors",
+                    isCollapsed
+                      ? "justify-center p-2"
+                      : "gap-3 px-3 py-2",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
+                  title={isCollapsed ? item.title : undefined}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.title}</span>
+                  <Icon className={cn("h-4 w-4", !isCollapsed && "shrink-0")} />
+                  {!isCollapsed && (
+                    <span className="text-sm font-medium">{item.title}</span>
+                  )}
                 </Link>
               );
             })}

@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { Pagination } from "./pagination";
+import { Toolbar } from "./toolbar";
 
 // Dados mockados
 interface Veiculo {
@@ -57,9 +58,9 @@ export function VeiculosTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Estado da paginação a partir da URL
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const pageSize = Number(searchParams.get("pageSize")) || 10;
+  // Estado da paginação local (não na URL)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const urlSortField = searchParams.get("sortField") as SortField | null;
   const urlSortDirection = (searchParams.get("sortDirection") as SortDirection) || "asc";
 
@@ -147,16 +148,18 @@ export function VeiculosTable() {
   const totalPages = Math.ceil(mockVeiculos.length / pageSize);
 
   const handlePageChange = (page: number) => {
-    updateURL({ page });
+    setCurrentPage(page);
   };
 
   const handlePageSizeChange = (size: number) => {
-    updateURL({ pageSize: size, page: 1 });
+    setPageSize(size);
+    setCurrentPage(1);
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-0">
       <div className="rounded-md border border-border">
+        <Toolbar />
         <Table>
           <TableHeader>
             <TableRow>
