@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react";
 import { Search, RefreshCw, Download, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +16,15 @@ import { useVeiculos } from "./veiculos-context";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/language-provider";
 import { useTranslations } from "@/lib/translations";
+import { VeiculoFormModal } from "./veiculo-form-modal";
+import type { Veiculo } from "@/lib/types/veiculo";
 
 export function Toolbar() {
   const { language } = useLanguage();
   const t = useTranslations(language);
-  const { searchTerm, setSearchTerm, refreshData } = useVeiculos();
+  const { searchTerm, setSearchTerm, refreshData, addVeiculo } = useVeiculos();
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleExport = (format: "csv" | "xlsx" | "json") => {
     // Implementar exportação
@@ -29,7 +33,12 @@ export function Toolbar() {
   };
 
   const handleAdd = () => {
-    router.push("/veiculos/novo");
+    setIsModalOpen(true);
+  };
+
+  const handleSaveVeiculo = (veiculo: Veiculo) => {
+    addVeiculo(veiculo);
+    refreshData();
   };
 
   return (
@@ -95,6 +104,13 @@ export function Toolbar() {
           </Button>
         </div>
       </div>
+
+      {/* Modal de criação de veículo */}
+      <VeiculoFormModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSave={handleSaveVeiculo}
+      />
     </div>
   );
 }
