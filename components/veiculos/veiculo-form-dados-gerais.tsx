@@ -4,14 +4,6 @@ import { useLanguage } from "@/components/language-provider";
 import { useTranslations } from "@/lib/translations";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import type { Veiculo } from "@/lib/types/veiculo";
 
 interface VeiculoFormDadosGeraisProps {
@@ -35,6 +27,21 @@ export function VeiculoFormDadosGerais({
   const tiposPlaca = ["Mercosul", "Antiga"];
   const combustiveis = ["Diesel", "Gasolina", "Etanol", "GNV", "Elétrico"];
   const estados = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
+
+  const formatPlaca = (value: string) => {
+    const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (clean.length <= 3) return clean;
+    return `${clean.slice(0,3)}-${clean.slice(3,7)}`.slice(0,8);
+  };
+
+  const formatRenavam = (value: string) => value.replace(/\D/g, "").slice(0,11);
+
+  const formatChassi = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,17);
+
+  const formatKm = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
 
   return (
     <div className="space-y-4">
@@ -82,38 +89,34 @@ export function VeiculoFormDadosGerais({
         {/* Companhia */}
         <div className="space-y-2">
           <Label htmlFor="companhia">{t("company")} (#180461)</Label>
-          <Select
+          <Input
+            id="companhia"
+            list="companhias-sugeridas"
             value={formData.companhia || ""}
-            onValueChange={(value) => onChange("companhia", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a companhia" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="inbuzios">Inbuzios Receptivo</SelectItem>
-              <SelectItem value="pass">Pass Transportes</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("companhia", e.target.value)}
+          />
+          <datalist id="companhias-sugeridas">
+            <option value="Inbuzios Receptivo" />
+            <option value="Pass Transportes" />
+          </datalist>
         </div>
 
         {/* Status */}
         <div className="space-y-2">
           <Label htmlFor="status">{t("status")} (#180451)</Label>
-          <Select
+          <Input
+            id="status"
+            list="status-sugeridos"
             value={formData.status || ""}
-            onValueChange={(value) => onChange("status", value as Veiculo["status"])}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("status", e.target.value as Veiculo["status"])}
+          />
+          <datalist id="status-sugeridos">
+            {statusOptions.map((status) => (
+              <option key={status} value={status} />
+            ))}
+          </datalist>
         </div>
 
         {/* Modelo */}
@@ -142,21 +145,19 @@ export function VeiculoFormDadosGerais({
           <Label htmlFor="marca">
             {t("brand")} (#1034) <span className="text-destructive">*</span>
           </Label>
-          <Select
+          <Input
+            id="marca"
+            list="marcas-sugeridas"
             value={formData.marca || ""}
-            onValueChange={(value) => onChange("marca", value)}
-          >
-            <SelectTrigger className={errors?.marca ? "border-destructive" : ""}>
-              <SelectValue placeholder="Selecione a marca" />
-            </SelectTrigger>
-            <SelectContent>
-              {marcas.map((marca) => (
-                <SelectItem key={marca} value={marca}>
-                  {marca}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("marca", e.target.value)}
+            className={errors?.marca ? "border-destructive" : ""}
+          />
+          <datalist id="marcas-sugeridas">
+            {marcas.map((marca) => (
+              <option key={marca} value={marca} />
+            ))}
+          </datalist>
           {errors?.marca && (
             <p className="text-sm text-destructive">{errors.marca}</p>
           )}
@@ -165,41 +166,35 @@ export function VeiculoFormDadosGerais({
         {/* Categoria */}
         <div className="space-y-2">
           <Label htmlFor="categoria">{t("category")} (#1106)</Label>
-          <Select
+          <Input
+            id="categoria"
+            list="categorias-sugeridas"
             value={formData.categoria || ""}
-            onValueChange={(value) => onChange("categoria", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {categorias.map((categoria) => (
-                <SelectItem key={categoria} value={categoria}>
-                  {categoria}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("categoria", e.target.value)}
+          />
+          <datalist id="categorias-sugeridas">
+            {categorias.map((categoria) => (
+              <option key={categoria} value={categoria} />
+            ))}
+          </datalist>
         </div>
 
         {/* Classificação */}
         <div className="space-y-2">
           <Label htmlFor="classificacao">{t("classification")} (#1105)</Label>
-          <Select
+          <Input
+            id="classificacao"
+            list="classificacoes-sugeridas"
             value={formData.classificacao || ""}
-            onValueChange={(value) => onChange("classificacao", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a classificação" />
-            </SelectTrigger>
-            <SelectContent>
-              {classificacoes.map((classificacao) => (
-                <SelectItem key={classificacao} value={classificacao}>
-                  {classificacao}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("classificacao", e.target.value)}
+          />
+          <datalist id="classificacoes-sugeridas">
+            {classificacoes.map((classificacao) => (
+              <option key={classificacao} value={classificacao} />
+            ))}
+          </datalist>
         </div>
 
         {/* Capacidade - Obrigatório */}
@@ -242,41 +237,36 @@ export function VeiculoFormDadosGerais({
         {/* UF */}
         <div className="space-y-2">
           <Label htmlFor="uf">{t("state")}</Label>
-          <Select
+          <Input
+            id="uf"
+            list="ufs-sugeridas"
             value={formData.uf || ""}
-            onValueChange={(value) => onChange("uf", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o estado" />
-            </SelectTrigger>
-            <SelectContent>
-              {estados.map((estado) => (
-                <SelectItem key={estado} value={estado}>
-                  {estado}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("uf", e.target.value.toUpperCase())}
+            maxLength={2}
+          />
+          <datalist id="ufs-sugeridas">
+            {estados.map((estado) => (
+              <option key={estado} value={estado} />
+            ))}
+          </datalist>
         </div>
 
         {/* Tipo de Placa */}
         <div className="space-y-2">
           <Label htmlFor="tipoPlaca">{t("licensePlateType")}</Label>
-          <Select
+          <Input
+            id="tipoPlaca"
+            list="tipos-placa"
             value={formData.tipoPlaca || ""}
-            onValueChange={(value) => onChange("tipoPlaca", value as Veiculo["tipoPlaca"])}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              {tiposPlaca.map((tipo) => (
-                <SelectItem key={tipo} value={tipo}>
-                  {tipo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("tipoPlaca", e.target.value as Veiculo["tipoPlaca"])}
+          />
+          <datalist id="tipos-placa">
+            {tiposPlaca.map((tipo) => (
+              <option key={tipo} value={tipo} />
+            ))}
+          </datalist>
         </div>
 
         {/* Placa - Obrigatório */}
@@ -287,9 +277,10 @@ export function VeiculoFormDadosGerais({
           <Input
             id="placa"
             value={formData.placa || ""}
-            onChange={(e) => onChange("placa", e.target.value.toUpperCase())}
+            onChange={(e) => onChange("placa", formatPlaca(e.target.value))}
             className={errors?.placa ? "border-destructive" : ""}
             maxLength={8}
+            placeholder="AAA-0A00"
           />
           {errors?.placa && (
             <p className="text-sm text-destructive">{errors.placa}</p>
@@ -302,7 +293,9 @@ export function VeiculoFormDadosGerais({
           <Input
             id="renavam"
             value={formData.renavam || ""}
-            onChange={(e) => onChange("renavam", e.target.value)}
+            onChange={(e) => onChange("renavam", formatRenavam(e.target.value))}
+            placeholder="Somente números"
+            inputMode="numeric"
           />
         </div>
 
@@ -312,7 +305,8 @@ export function VeiculoFormDadosGerais({
           <Input
             id="chassi"
             value={formData.chassi || ""}
-            onChange={(e) => onChange("chassi", e.target.value)}
+            onChange={(e) => onChange("chassi", formatChassi(e.target.value))}
+            placeholder="17 caracteres"
           />
         </div>
 
@@ -322,29 +316,27 @@ export function VeiculoFormDadosGerais({
           <Input
             id="revisaoKm"
             value={formData.revisaoKm || ""}
-            onChange={(e) => onChange("revisaoKm", e.target.value)}
+            onChange={(e) => onChange("revisaoKm", formatKm(e.target.value))}
             placeholder="000.000"
+            inputMode="numeric"
           />
         </div>
 
         {/* Combustível */}
         <div className="space-y-2">
           <Label htmlFor="combustivel">{t("fuel")} (#1337)</Label>
-          <Select
+          <Input
+            id="combustivel"
+            list="combustiveis-sugeridos"
             value={formData.combustivel || ""}
-            onValueChange={(value) => onChange("combustivel", value as Veiculo["combustivel"])}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o combustível" />
-            </SelectTrigger>
-            <SelectContent>
-              {combustiveis.map((combustivel) => (
-                <SelectItem key={combustivel} value={combustivel}>
-                  {combustivel}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Digite ou selecione"
+            onChange={(e) => onChange("combustivel", e.target.value as Veiculo["combustivel"])}
+          />
+          <datalist id="combustiveis-sugeridos">
+            {combustiveis.map((combustivel) => (
+              <option key={combustivel} value={combustivel} />
+            ))}
+          </datalist>
         </div>
       </div>
 
@@ -361,4 +353,3 @@ export function VeiculoFormDadosGerais({
     </div>
   );
 }
-
