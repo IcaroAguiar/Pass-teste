@@ -128,3 +128,31 @@
   from { clip-path: circle(200vmax at 0 0); }
   to   { clip-path: circle(0px at 0 0); }
 }
+
+/* ====== Scrollbar Customizada - Tema Escuro ====== */
+/* Webkit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A1A1A;
+  border-radius: 4px;
+  border: 1px solid #0A0A0A;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2A2A2A;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1A1A1A #0A0A0A;
+}

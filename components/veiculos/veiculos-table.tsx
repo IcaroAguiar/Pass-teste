@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal, Circle } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal, Circle, Eye, Pencil, Trash2 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Table,
@@ -27,37 +27,7 @@ import { Toolbar } from "./toolbar";
 import { useVeiculos } from "./veiculos-context";
 import { useLanguage } from "@/components/language-provider";
 import { useTranslations } from "@/lib/translations";
-
-// Dados mockados
-interface Veiculo {
-  id: string;
-  titulo: string;
-  marca: string;
-  placa: string;
-  capacidade: number;
-  status: string;
-  criadoEm: Date;
-}
-
-const mockVeiculos: Veiculo[] = Array.from({ length: 32 }, (_, i) => {
-  const marcas = ["Mercedes-Benz", "Volvo", "Scania", "Volkswagen", "Iveco"];
-  const statuses = ["Liberado", "Ocupado", "Manutenção"];
-  const tipos = ["Van Executiva", "Micro-ônibus", "Van Turismo", "Ônibus", "Minivan"];
-  const letras = ["ABC", "DEF", "GHI", "JKL", "MNO", "PQR", "STU", "VWX"];
-  
-  const letraIndex = Math.floor(i / 4) % letras.length;
-  const numero = String(1000 + (i % 9000)).padStart(4, "0");
-  
-  return {
-    id: String(i + 1),
-    titulo: `${tipos[i % tipos.length]} ${i + 1}`,
-    marca: marcas[i % marcas.length],
-    placa: `${letras[letraIndex]}-${numero}`,
-    capacidade: [15, 20, 30, 40, 50][i % 5],
-    status: statuses[i % statuses.length],
-    criadoEm: new Date(2024, 0, 15 + i),
-  };
-});
+import type { Veiculo } from "@/lib/types/veiculo";
 
 type SortField = keyof Veiculo;
 type SortDirection = "asc" | "desc";
@@ -67,7 +37,7 @@ export function VeiculosTable() {
   const searchParams = useSearchParams();
   const { language } = useLanguage();
   const t = useTranslations(language);
-  const { searchTerm, filters } = useVeiculos();
+  const { searchTerm, filters, veiculos, status, error } = useVeiculos();
   
   const dateLocale = language === "pt" ? ptBR : language === "en" ? enUS : es;
   
@@ -122,7 +92,9 @@ export function VeiculosTable() {
   };
 
   const toggleAllSelection = () => {
-    const currentPageIds = paginatedVeiculos.map((v) => v.id);
+    const currentPageIds = paginatedVeiculos
+      .map((v) => v.id)
+      .filter((id): id is string => Boolean(id));
     const allCurrentSelected = currentPageIds.every((id) => selectedRows.has(id));
     
     const newSelected = new Set(selectedRows);
@@ -140,19 +112,27 @@ export function VeiculosTable() {
 
   // Filtros e busca
   const filteredVeiculos = useMemo(() => {
-    let filtered = [...mockVeiculos];
+    let filtered = [...veiculos];
 
     // Aplicar busca
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (v) =>
-          v.titulo.toLowerCase().includes(term) ||
-          v.marca.toLowerCase().includes(term) ||
-          v.placa.toLowerCase().includes(term) ||
-          v.id.toLowerCase().includes(term) ||
-          v.status.toLowerCase().includes(term)
-      );
+      filtered = filtered.filter((v) => {
+        const identificador = v.identificador?.toLowerCase() ?? "";
+        const titulo = v.titulo?.toLowerCase() ?? "";
+        const marca = v.marca?.toLowerCase() ?? "";
+        const placa = v.placa?.toLowerCase() ?? "";
+        const id = v.id?.toLowerCase() ?? "";
+        const status = v.status?.toLowerCase() ?? "";
+        return (
+          identificador.includes(term) ||
+          titulo.includes(term) ||
+          marca.includes(term) ||
+          placa.includes(term) ||
+          id.includes(term) ||
+          status.includes(term)
+        );
+      });
     }
 
     // Aplicar filtros
@@ -172,7 +152,7 @@ export function VeiculosTable() {
     });
 
     return filtered;
-  }, [searchTerm, filters]);
+  }, [searchTerm, filters, veiculos]);
 
   // Paginação
   const paginatedVeiculos = useMemo(() => {
@@ -183,23 +163,23 @@ export function VeiculosTable() {
     const bValue = b[sortField];
 
     if (sortField === "criadoEm") {
-      const aDate = aValue as Date;
-      const bDate = bValue as Date;
+      const aDate = (aValue as Date | undefined) ?? new Date(0);
+      const bDate = (bValue as Date | undefined) ?? new Date(0);
       return sortDirection === "asc"
         ? aDate.getTime() - bDate.getTime()
         : bDate.getTime() - aDate.getTime();
     }
 
     if (sortField === "capacidade") {
-      const aNum = aValue as number;
-      const bNum = bValue as number;
+      const aNum = (aValue as number | undefined) ?? 0;
+      const bNum = (bValue as number | undefined) ?? 0;
       return sortDirection === "asc"
         ? aNum - bNum
         : bNum - aNum;
     }
 
-    const aStr = String(aValue).toLowerCase();
-    const bStr = String(bValue).toLowerCase();
+    const aStr = String(aValue ?? "").toLowerCase();
+    const bStr = String(bValue ?? "").toLowerCase();
     
     if (sortDirection === "asc") {
       return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
@@ -213,7 +193,7 @@ export function VeiculosTable() {
     return sorted.slice(start, end);
   }, [filteredVeiculos, sortField, sortDirection, currentPage, pageSize]);
 
-  const totalPages = Math.ceil(filteredVeiculos.length / pageSize);
+  const totalPages = Math.ceil(filteredVeiculos.length / pageSize || 1);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -233,28 +213,37 @@ export function VeiculosTable() {
     <div className="space-y-0">
       <div className="rounded-2xl border border-border dark:border-[#2D2E2E] overflow-hidden">
         <Toolbar />
-        <Table>
+        {status === "loading" && (
+          <div className="p-6 text-sm text-muted-foreground">Carregando veículos...</div>
+        )}
+        {status === "error" && (
+          <div className="p-6 text-sm text-destructive">{error || "Erro ao carregar"}</div>
+        )}
+        {status === "idle" && veiculos.length === 0 && (
+          <div className="p-6 text-sm text-muted-foreground">Nenhum veículo cadastrado ainda.</div>
+        )}
+        <Table className={veiculos.length === 0 ? "hidden" : ""}>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
                   checked={
                     paginatedVeiculos.length > 0 &&
-                    paginatedVeiculos.every((v) => selectedRows.has(v.id))
+                    paginatedVeiculos.every((v) => v.id ? selectedRows.has(v.id) : false)
                   }
                   onCheckedChange={toggleAllSelection}
                   aria-label="Selecionar todos"
                 />
               </TableHead>
-              <TableHead className="w-[90px]">
+              <TableHead className="w-[120px]">
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-7 gap-1.5 w-full justify-start -ml-3 px-3 text-sm text-white font-medium"
-                  onClick={() => handleSort("id")}
+                  onClick={() => handleSort("identificador")}
                 >
                   {t("identifier")}
-                  {getSortIcon("id")}
+                  {getSortIcon("identificador")}
                 </Button>
               </TableHead>
               <TableHead className="w-[160px]">
@@ -327,9 +316,19 @@ export function VeiculosTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedVeiculos.map((veiculo) => (
+            {paginatedVeiculos.map((veiculo) => {
+              const id = veiculo.id ?? "";
+              const identificador = veiculo.identificador ?? "—";
+              const titulo = veiculo.titulo ?? "—";
+              const placa = veiculo.placa ?? "—";
+              const marca = veiculo.marca ?? "—";
+              const status = veiculo.status ?? "—";
+              const capacidade = veiculo.capacidade ?? 0;
+              const createdAt = veiculo.criadoEm ? formatDate(veiculo.criadoEm) : "—";
+
+              return (
               <TableRow
-                key={veiculo.id}
+                key={id}
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => {
                   // Navegar para detalhes
@@ -337,42 +336,40 @@ export function VeiculosTable() {
               >
                 <TableCell>
                   <Checkbox
-                    checked={selectedRows.has(veiculo.id)}
-                    onCheckedChange={() => toggleRowSelection(veiculo.id)}
+                    checked={selectedRows.has(id)}
+                    onCheckedChange={() => toggleRowSelection(id)}
                     onClick={(e) => e.stopPropagation()}
-                    aria-label={`Selecionar veículo ${veiculo.id}`}
+                    aria-label={`Selecionar veículo ${id}`}
                   />
                 </TableCell>
-                <TableCell className="text-sm">{veiculo.id}</TableCell>
+                <TableCell className="text-sm">{identificador}</TableCell>
                 <TableCell>
                   <Link
-                    href={`/veiculos/${veiculo.id}`}
+                    href={`/veiculos/${id}`}
                     className="text-primary hover:underline"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {veiculo.titulo}
+                    {titulo}
                   </Link>
                 </TableCell>
-                <TableCell>{veiculo.marca}</TableCell>
-                <TableCell className="text-sm">{veiculo.placa}</TableCell>
-                <TableCell>{veiculo.capacidade} lugares</TableCell>
-                <TableCell className="text-sm">
-                  {formatDate(veiculo.criadoEm)}
-                </TableCell>
+                <TableCell>{marca}</TableCell>
+                <TableCell className="text-sm">{placa}</TableCell>
+                <TableCell>{capacidade} lugares</TableCell>
+                <TableCell className="text-sm">{createdAt}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Circle
                       className={`h-2 w-2 opacity-60 ${
-                        veiculo.status === "Liberado"
+                        status === "Liberado"
                           ? "fill-green-500 text-green-500"
-                          : veiculo.status === "Ocupado"
+                          : status === "Ocupado"
                           ? "fill-red-500 text-red-500"
-                          : veiculo.status === "Manutenção"
+                          : status === "Manutenção"
                           ? "fill-yellow-500 text-yellow-500"
                           : "fill-gray-500 text-gray-500"
                       }`}
                     />
-                    <span>{veiculo.status}</span>
+                    <span>{status}</span>
                   </div>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
@@ -384,16 +381,30 @@ export function VeiculosTable() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Remover
+                      <DropdownMenuItem onClick={() => router.push(`/veiculos/${id}`)}>
+                        <Eye className="mr-2 h-4 w-4" /> Ver detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push(`/veiculos/${id}/edit`)}>
+                        <Pencil className="mr-2 h-4 w-4" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={async () => {
+                          if (!id) return;
+                          const ok = confirm("Remover este veículo?");
+                          if (!ok) return;
+                          await fetch(`/api/veiculos/${id}`, { method: "DELETE" });
+                          router.refresh();
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Remover
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            );
+            })}
           </TableBody>
         </Table>
       </div>

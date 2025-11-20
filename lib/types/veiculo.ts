@@ -46,6 +46,7 @@ export interface Documentacao {
   vencimento: Date;
   antecipacao: boolean;
   dias?: number;
+  anexo?: string;
 }
 
 export interface Ocorrencia {
@@ -64,5 +65,7 @@ export interface Abastecimento {
   combustivel: string;
   litros: number;
   valor: number;
+  kmRevisao?: number;
+  kmParada?: number;
+  comprovante?: string;
 }
-

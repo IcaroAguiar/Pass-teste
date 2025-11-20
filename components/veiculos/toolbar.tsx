@@ -36,8 +36,8 @@ export function Toolbar() {
     setIsModalOpen(true);
   };
 
-  const handleSaveVeiculo = (veiculo: Veiculo) => {
-    addVeiculo(veiculo);
+  const handleSaveVeiculo = async (veiculo: Veiculo) => {
+    await addVeiculo(veiculo);
     refreshData();
   };
 
@@ -114,4 +114,3 @@ export function Toolbar() {
     </div>
   );
 }
-
