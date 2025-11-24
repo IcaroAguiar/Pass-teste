@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EditableCombobox } from "@/components/ui/editable-combobox";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -45,6 +46,13 @@ export function VeiculoFormOcorrencia({
   const classificacoes = ["#1104 - Colisão", "#1104 - Quebra", "#1104 - Via"];
   const seriedades = ["#1103 - Baixa", "#1103 - Média", "#1103 - Alta"];
 
+  const severityDot = (level: string) => {
+    const normalized = level.toLowerCase();
+    if (normalized.includes("alta")) return { color: "bg-red-500", label: "Alta" };
+    if (normalized.includes("média") || normalized.includes("media")) return { color: "bg-yellow-400", label: "Média" };
+    return { color: "bg-green-500", label: "Baixa" };
+  };
+
   const handleSubmit = () => {
     onAdd(form);
     setOpen(false);
@@ -65,7 +73,7 @@ export function VeiculoFormOcorrencia({
             <TableHead>{t("occurrenceDate")}</TableHead>
             <TableHead>{t("occurrenceClassification")}</TableHead>
             <TableHead>{t("severity")}</TableHead>
-            <TableHead></TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,13 +94,30 @@ export function VeiculoFormOcorrencia({
                     ? new Date(ocorrencia.dataOcorrencia).toLocaleDateString("pt-BR")
                     : "-"}
                 </TableCell>
-                <TableCell>{ocorrencia.classificacao}</TableCell>
-                <TableCell>{ocorrencia.seriedade}</TableCell>
-                <TableCell className="w-12 text-right">
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-semibold">{ocorrencia.classificacao}</span>
+                    {ocorrencia.descricao && (
+                      <span className="text-xs text-muted-foreground line-clamp-2">{ocorrencia.descricao}</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {(() => {
+                    const { label, color } = severityDot(ocorrencia.seriedade || "");
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
+                        <span>{label}</span>
+                      </div>
+                    );
+                  })()}
+                </TableCell>
+                <TableCell className="w-20 text-right">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-destructive"
                     onClick={() => onRemove(index)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -108,7 +133,7 @@ export function VeiculoFormOcorrencia({
       <div className="flex justify-end">
         <Button type="button" variant="outline" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          {t("addVehicle")}
+          Adicionar
         </Button>
       </div>
 

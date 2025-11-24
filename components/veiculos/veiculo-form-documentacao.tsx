@@ -6,6 +6,7 @@ import { useLanguage } from "@/components/language-provider";
 import { useTranslations } from "@/lib/translations";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -60,6 +61,17 @@ export function VeiculoFormDocumentacao({
     setOpen(false);
   };
 
+  const formatDate = (date?: Date) =>
+    date ? new Date(date).toLocaleDateString("pt-BR") : "-";
+
+  const vencimentoBadge = (date?: Date) => {
+    if (!date) return { label: "Sem data", variant: "outline" as const };
+    const diffDays = Math.ceil((new Date(date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return { label: "Vencido", variant: "destructive" as const };
+    if (diffDays <= 30) return { label: `${diffDays} dias`, variant: "secondary" as const };
+    return { label: `${diffDays} dias`, variant: "outline" as const };
+  };
+
   return (
     <div className="space-y-4">
       {documentacoes.length === 0 ? (
@@ -76,41 +88,56 @@ export function VeiculoFormDocumentacao({
               <TableHead>{t("expiration")}</TableHead>
               <TableHead>{t("anticipation")}</TableHead>
               <TableHead>{t("days")}</TableHead>
-              <TableHead></TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {documentacoes.map((doc, index) => (
               <TableRow key={index}>
                 <TableCell>
-                  <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold uppercase">
+                      {(doc.documento || doc.tipo || "D").slice(0, 2)}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold leading-tight">{doc.documento || "Documento"}</span>
+                      <span className="text-xs text-muted-foreground leading-tight">{doc.tipo}</span>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{doc.tipo}</TableCell>
                 <TableCell>
-                  {doc.vencimento
-                    ? new Date(doc.vencimento).toLocaleDateString("pt-BR")
-                    : "-"}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{formatDate(doc.vencimento)}</span>
+                    {(() => {
+                      const { label, variant } = vencimentoBadge(doc.vencimento as Date | undefined);
+                      return <Badge variant={variant as any}>{label}</Badge>;
+                    })()}
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <Switch
-                    checked={doc.antecipacao}
-                    onCheckedChange={() => onToggleAntecipacao(index)}
-                    aria-label="Antecipação"
-                  />
-                </TableCell>
-                <TableCell>{doc.dias || "-"}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Switch
+                      checked={doc.antecipacao}
+                      onCheckedChange={() => onToggleAntecipacao(index)}
+                      aria-label="Antecipação"
+                    />
+                    <Badge variant={doc.antecipacao ? "default" : "outline"}>
+                      {doc.antecipacao ? "Sim" : "Não"}
+                    </Badge>
+                  </div>
+                </TableCell>
+                <TableCell>{doc.dias ?? "-"}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
                       <Copy className="h-3 w-3" />
                       <span className="sr-only">Copiar</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
+                      className="h-7 w-7 text-destructive"
                       onClick={() => onRemove(index)}
                     >
                       <X className="h-3 w-3" />
@@ -126,7 +153,7 @@ export function VeiculoFormDocumentacao({
       <div className="flex justify-center">
         <Button type="button" variant="outline" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          {t("addVehicle")}
+          Adicionar documentação
         </Button>
       </div>
 

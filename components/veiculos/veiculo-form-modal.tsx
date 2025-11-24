@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Car, Camera, FileText, AlertTriangle, Fuel, Hash, CarFront, Wrench, FileCheck, ChevronRight, Tag } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useTranslations } from "@/lib/translations";
@@ -32,13 +32,19 @@ import type { Abastecimento } from "@/lib/types/veiculo";
 interface VeiculoFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (veiculo: Veiculo) => void;
+  onSave: (veiculo: Veiculo) => Promise<void> | void;
+  onDelete?: (id: string) => Promise<void> | void;
+  mode?: "create" | "edit";
+  veiculo?: Veiculo;
 }
 
 export function VeiculoFormModal({
   open,
   onOpenChange,
   onSave,
+  onDelete,
+  mode = "create",
+  veiculo,
 }: VeiculoFormModalProps) {
   const { language } = useLanguage();
   const t = useTranslations(language);
@@ -51,6 +57,72 @@ export function VeiculoFormModal({
   const combustiveis = ["Diesel", "Gasolina", "Etanol", "GNV", "Elétrico"];
   const ufs = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
+  const sampleDocumentacoes: Documentacao[] = useMemo(
+    () => [
+      {
+        documento: "Tacógrafo",
+        tipo: "Tacógrafo",
+        vencimento: new Date(Date.now() + 1000 * 60 * 60 * 24 * 45),
+        antecipacao: true,
+        dias: 15,
+      },
+      {
+        documento: "CRLV 2025",
+        tipo: "Licenciamento",
+        vencimento: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10),
+        antecipacao: false,
+        dias: undefined,
+      },
+    ],
+    []
+  );
+
+  const sampleOcorrencias: Ocorrencia[] = useMemo(
+    () => [
+      {
+        dataOcorrencia: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20),
+        classificacao: "Colisão lateral",
+        seriedade: "Alta",
+        descricao: "Dano superficial na porta traseira esquerda durante manobra em garagem.",
+        anexo: undefined,
+      },
+      {
+        dataOcorrencia: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5),
+        classificacao: "Reclamação passageiro",
+        seriedade: "Média",
+        descricao: "Atraso de 10 minutos no embarque causado por tráfego intenso.",
+        anexo: undefined,
+      },
+    ],
+    []
+  );
+
+  const sampleAbastecimentos: Abastecimento[] = useMemo(
+    () => [
+      {
+        dataAbastecimento: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+        fornecedor: "Posto Atlântico",
+        combustivel: "Diesel",
+        litros: 45.5,
+        valor: 389.9,
+        kmRevisao: 28000,
+        kmParada: 27500,
+        comprovante: "nota-123.pdf",
+      },
+      {
+        dataAbastecimento: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12),
+        fornecedor: "Shell BR-101",
+        combustivel: "GNV",
+        litros: 30,
+        valor: 210.0,
+        kmRevisao: 30000,
+        kmParada: 26800,
+        comprovante: "cupom-987.jpg",
+      },
+    ],
+    []
+  );
+
   const formatPlaca = (value: string) => {
     const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (clean.length <= 3) return clean;
@@ -61,14 +133,40 @@ export function VeiculoFormModal({
   const formatChassi = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,17);
   const formatKm = (value: string) => value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-  const [formData, setFormData] = useState<Partial<Veiculo>>({
+  const emptyForm: Partial<Veiculo> = useMemo(() => ({
     imagens: [],
     documentacoes: [],
     ocorrencias: [],
     abastecimentos: [],
-  });
+  }), []);
+
+  const [formData, setFormData] = useState<Partial<Veiculo>>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("informacoes");
+
+  const normalizeArrays = (data?: Partial<Veiculo>): Partial<Veiculo> => ({
+    ...(data || {}),
+    imagens: Array.isArray(data?.imagens) ? data?.imagens : [],
+    documentacoes: Array.isArray(data?.documentacoes) ? data?.documentacoes : [],
+    ocorrencias: Array.isArray(data?.ocorrencias) ? data?.ocorrencias : [],
+    abastecimentos: Array.isArray(data?.abastecimentos) ? data?.abastecimentos : [],
+  });
+
+  useEffect(() => {
+    if (open) {
+      const base = veiculo
+        ? normalizeArrays(veiculo)
+        : {
+            ...emptyForm,
+            documentacoes: sampleDocumentacoes,
+            ocorrencias: sampleOcorrencias,
+            abastecimentos: sampleAbastecimentos,
+          };
+      setFormData(base);
+      setErrors({});
+      setActiveTab("informacoes");
+    }
+  }, [open, veiculo, emptyForm, sampleDocumentacoes, sampleOcorrencias, sampleAbastecimentos]);
 
   const handleChange = (field: keyof Veiculo, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -108,14 +206,15 @@ export function VeiculoFormModal({
   const tabs = ["informacoes", "documentacao", "detalhes", "imagens-documentos", "ocorrencias", "abastecimentos"];
   const isLastTab = activeTab === tabs[tabs.length - 1];
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (isLastTab) {
       // Na última aba, validar e salvar
     if (!validate()) {
       return;
     }
 
-    const novoVeiculo: Veiculo = {
+    const payload: Veiculo = {
+      ...(veiculo || {}),
       identificador: formData.identificador!,
       marca: formData.marca!,
       placa: formData.placa!,
@@ -137,14 +236,14 @@ export function VeiculoFormModal({
       status: formData.status,
       caracteristicas: formData.caracteristicas,
       descricao: formData.descricao,
-      criadoEm: new Date(),
+      criadoEm: veiculo?.criadoEm || formData.criadoEm || new Date(),
       imagens: formData.imagens || [],
       documentacoes: formData.documentacoes || [],
       ocorrencias: formData.ocorrencias || [],
       abastecimentos: formData.abastecimentos || [],
     };
 
-    onSave(novoVeiculo);
+    await onSave(payload);
     handleClose(false);
     } else {
       // Nas outras abas, avançar para a próxima
@@ -157,12 +256,7 @@ export function VeiculoFormModal({
 
   const handleClose = (open: boolean) => {
     if (!open) {
-      setFormData({
-        imagens: [],
-        documentacoes: [],
-        ocorrencias: [],
-        abastecimentos: [],
-      });
+      setFormData(veiculo ? normalizeArrays(veiculo) : emptyForm);
       setErrors({});
       setActiveTab("informacoes");
     }
@@ -179,10 +273,12 @@ export function VeiculoFormModal({
               <Car className="h-5 w-5 text-muted-foreground" />
               <div>
                 <DialogTitle className="text-xl font-semibold text-white">
-                  {t("vehicle")}
+                  {mode === "edit" ? "Editar veículo" : t("vehicle")}
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Gerencie informações do veículo
+                  {mode === "edit" && (veiculo?.titulo || veiculo?.identificador)
+                    ? veiculo?.titulo || veiculo?.identificador
+                    : "Gerencie informações do veículo"}
                 </p>
               </div>
             </div>
@@ -613,6 +709,11 @@ export function VeiculoFormModal({
                 onAdd={(ab) => {
                   handleChange("abastecimentos", [...(formData.abastecimentos || []), ab]);
                 }}
+                onRemove={(idx) => {
+                  const next = [...(formData.abastecimentos || [])];
+                  next.splice(idx, 1);
+                  handleChange("abastecimentos", next);
+                }}
               />
                 </div>
               </TabsContent>
@@ -622,20 +723,32 @@ export function VeiculoFormModal({
 
         {/* Footer fixo */}
         <DialogFooter className="border-t border-[#1A1A1A] px-6 py-3 shrink-0 bg-[#0A0A0A]">
-          <Button 
-            variant="outline" 
-            onClick={() => handleClose(false)}
-            className="border-[#1A1A1A] text-muted-foreground hover:bg-[#1A1A1A] hover:text-white"
-          >
-            {t("close")}
-          </Button>
-          <Button 
-            onClick={handleContinue}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
-          >
-            {isLastTab ? t("register") : "Continuar"}
-            {!isLastTab && <ChevronRight className="h-4 w-4" />}
-          </Button>
+          {mode === "edit" && veiculo?.id && onDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              className="border-[#1A1A1A] text-destructive hover:text-destructive hover:bg-[#1A1A1A]"
+              onClick={() => onDelete(veiculo.id!)}
+            >
+              Excluir
+            </Button>
+          )}
+          <div className="ml-auto flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => handleClose(false)}
+              className="border-[#1A1A1A] text-muted-foreground hover:bg-[#1A1A1A] hover:text-white"
+            >
+              {t("close")}
+            </Button>
+            <Button 
+              onClick={handleContinue}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
+            >
+              {isLastTab ? (mode === "edit" ? "Salvar" : t("register")) : "Continuar"}
+              {!isLastTab && <ChevronRight className="h-4 w-4" />}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
