@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal, Circle, Eye, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Circle, Pencil, Trash2 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Table,
@@ -13,12 +13,6 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
 import Link from "next/link";
@@ -28,6 +22,7 @@ import { useVeiculos } from "./veiculos-context";
 import { useLanguage } from "@/components/language-provider";
 import { useTranslations } from "@/lib/translations";
 import type { Veiculo } from "@/lib/types/veiculo";
+import { VeiculoFormModal } from "./veiculo-form-modal";
 
 type SortField = keyof Veiculo;
 type SortDirection = "asc" | "desc";
@@ -37,7 +32,7 @@ export function VeiculosTable() {
   const searchParams = useSearchParams();
   const { language } = useLanguage();
   const t = useTranslations(language);
-  const { searchTerm, filters, veiculos, status, error } = useVeiculos();
+  const { searchTerm, filters, veiculos, status, error, refreshData, updateVeiculo, deleteVeiculo } = useVeiculos();
   
   const dateLocale = language === "pt" ? ptBR : language === "en" ? enUS : es;
   
@@ -50,6 +45,37 @@ export function VeiculosTable() {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField | null>(urlSortField);
   const [sortDirection, setSortDirection] = useState<SortDirection>(urlSortDirection);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingVeiculo, setEditingVeiculo] = useState<Veiculo | null>(null);
+
+  const handleOpenEdit = (veiculo: Veiculo) => {
+    if (!veiculo.id) return;
+    setEditingVeiculo(veiculo);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (veiculoEditado: Veiculo) => {
+    if (!veiculoEditado.id) return;
+    await updateVeiculo(veiculoEditado.id, veiculoEditado);
+    refreshData();
+    setEditModalOpen(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    const ok = confirm("Remover este veículo?");
+    if (!ok) return;
+    await deleteVeiculo(id);
+    refreshData();
+    setSelectedRows((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    if (editingVeiculo?.id === id) {
+      setEditModalOpen(false);
+      setEditingVeiculo(null);
+    }
+  };
 
   const updateURL = (updates: Record<string, string | number>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -330,9 +356,7 @@ export function VeiculosTable() {
               <TableRow
                 key={id}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() => {
-                  // Navegar para detalhes
-                }}
+                onClick={() => handleOpenEdit(veiculo)}
               >
                 <TableCell>
                   <Checkbox
@@ -344,13 +368,16 @@ export function VeiculosTable() {
                 </TableCell>
                 <TableCell className="text-sm">{identificador}</TableCell>
                 <TableCell>
-                  <Link
-                    href={`/veiculos/${id}`}
+                  <button
+                    type="button"
                     className="text-primary hover:underline"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenEdit(veiculo);
+                    }}
                   >
                     {titulo}
-                  </Link>
+                  </button>
                 </TableCell>
                 <TableCell>{marca}</TableCell>
                 <TableCell className="text-sm">{placa}</TableCell>
@@ -373,34 +400,24 @@ export function VeiculosTable() {
                   </div>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Abrir menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/veiculos/${id}`)}>
-                        <Eye className="mr-2 h-4 w-4" /> Ver detalhes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push(`/veiculos/${id}/edit`)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={async () => {
-                          if (!id) return;
-                          const ok = confirm("Remover este veículo?");
-                          if (!ok) return;
-                          await fetch(`/api/veiculos/${id}`, { method: "DELETE" });
-                          router.refresh();
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Remover
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleOpenEdit(veiculo)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => id && handleDelete(id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             );
@@ -419,15 +436,27 @@ export function VeiculosTable() {
           </div>
         )}
         
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredVeiculos.length}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={filteredVeiculos.length}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+      />
+    </div>
+
+      <VeiculoFormModal
+        open={editModalOpen && Boolean(editingVeiculo)}
+        onOpenChange={(open) => {
+          setEditModalOpen(open);
+          if (!open) setEditingVeiculo(null);
+        }}
+        onSave={handleSaveEdit}
+        onDelete={editingVeiculo?.id ? handleDelete : undefined}
+        mode="edit"
+        veiculo={editingVeiculo || undefined}
+      />
     </div>
   );
 }

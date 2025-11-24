@@ -2,6 +2,7 @@
 .cursor/
 .specify/
 specs/
+AGENTS.md
 
 # Dependências
 node_modules/
@@ -57,4 +58,3 @@ coverage/
 *.tmp
 *.temp
 .cache/
-
