@@ -46,11 +46,11 @@ export function VeiculoFormOcorrencia({
   const classificacoes = ["#1104 - Colisão", "#1104 - Quebra", "#1104 - Via"];
   const seriedades = ["#1103 - Baixa", "#1103 - Média", "#1103 - Alta"];
 
-  const severityBadge = (level: string) => {
+  const severityDot = (level: string) => {
     const normalized = level.toLowerCase();
-    if (normalized.includes("alta")) return { variant: "destructive" as const, label: "Alta" };
-    if (normalized.includes("média") || normalized.includes("media")) return { variant: "secondary" as const, label: "Média" };
-    return { variant: "outline" as const, label: "Baixa" };
+    if (normalized.includes("alta")) return { color: "bg-red-500", label: "Alta" };
+    if (normalized.includes("média") || normalized.includes("media")) return { color: "bg-yellow-400", label: "Média" };
+    return { color: "bg-green-500", label: "Baixa" };
   };
 
   const handleSubmit = () => {
@@ -73,7 +73,7 @@ export function VeiculoFormOcorrencia({
             <TableHead>{t("occurrenceDate")}</TableHead>
             <TableHead>{t("occurrenceClassification")}</TableHead>
             <TableHead>{t("severity")}</TableHead>
-            <TableHead></TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -104,11 +104,16 @@ export function VeiculoFormOcorrencia({
                 </TableCell>
                 <TableCell>
                   {(() => {
-                    const { label, variant } = severityBadge(ocorrencia.seriedade || "");
-                    return <Badge variant={variant}>{label}</Badge>;
+                    const { label, color } = severityDot(ocorrencia.seriedade || "");
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
+                        <span>{label}</span>
+                      </div>
+                    );
                   })()}
                 </TableCell>
-                <TableCell className="w-12 text-right">
+                <TableCell className="w-20 text-right">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -128,7 +133,7 @@ export function VeiculoFormOcorrencia({
       <div className="flex justify-end">
         <Button type="button" variant="outline" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Adicionar ocorrência
+          Adicionar
         </Button>
       </div>
 

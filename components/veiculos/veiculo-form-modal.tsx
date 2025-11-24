@@ -97,6 +97,32 @@ export function VeiculoFormModal({
     []
   );
 
+  const sampleAbastecimentos: Abastecimento[] = useMemo(
+    () => [
+      {
+        dataAbastecimento: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+        fornecedor: "Posto Atlântico",
+        combustivel: "Diesel",
+        litros: 45.5,
+        valor: 389.9,
+        kmRevisao: 28000,
+        kmParada: 27500,
+        comprovante: "nota-123.pdf",
+      },
+      {
+        dataAbastecimento: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12),
+        fornecedor: "Shell BR-101",
+        combustivel: "GNV",
+        litros: 30,
+        valor: 210.0,
+        kmRevisao: 30000,
+        kmParada: 26800,
+        comprovante: "cupom-987.jpg",
+      },
+    ],
+    []
+  );
+
   const formatPlaca = (value: string) => {
     const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (clean.length <= 3) return clean;
@@ -134,12 +160,13 @@ export function VeiculoFormModal({
             ...emptyForm,
             documentacoes: sampleDocumentacoes,
             ocorrencias: sampleOcorrencias,
+            abastecimentos: sampleAbastecimentos,
           };
       setFormData(base);
       setErrors({});
       setActiveTab("informacoes");
     }
-  }, [open, veiculo, emptyForm, sampleDocumentacoes, sampleOcorrencias]);
+  }, [open, veiculo, emptyForm, sampleDocumentacoes, sampleOcorrencias, sampleAbastecimentos]);
 
   const handleChange = (field: keyof Veiculo, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -681,6 +708,11 @@ export function VeiculoFormModal({
                 abastecimentos={formData.abastecimentos || []}
                 onAdd={(ab) => {
                   handleChange("abastecimentos", [...(formData.abastecimentos || []), ab]);
+                }}
+                onRemove={(idx) => {
+                  const next = [...(formData.abastecimentos || [])];
+                  next.splice(idx, 1);
+                  handleChange("abastecimentos", next);
                 }}
               />
                 </div>

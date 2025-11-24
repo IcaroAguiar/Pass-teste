@@ -17,16 +17,19 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Info } from "lucide-react";
 import type { Abastecimento } from "@/lib/types/veiculo";
 
 interface VeiculoFormAbastecimentoProps {
   abastecimentos: Abastecimento[];
   onAdd: (abastecimento: Abastecimento) => void;
+  onRemove?: (index: number) => void;
 }
 
 export function VeiculoFormAbastecimento({
   abastecimentos,
   onAdd,
+  onRemove,
 }: VeiculoFormAbastecimentoProps) {
   const { language } = useLanguage();
   const t = useTranslations(language);
@@ -69,25 +72,35 @@ export function VeiculoFormAbastecimento({
 
   return (
     <div className="space-y-4">
-      {abastecimentos.length === 0 ? (
-        <div className="flex items-center justify-center py-8 text-muted-foreground">
-          <AlertCircle className="h-5 w-5 mr-2" />
-          <span>{t("noRecord")}</span>
+      <div className="rounded-lg border border-[#1A1A1A] bg-[#0F0F0F] p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-white">
+          <Fuel className="h-4 w-4 text-muted-foreground" />
+          Abastecimento
         </div>
-      ) : (
-        <>
-          <Table>
-            <TableHeader>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("refuelingDate")}</TableHead>
+              <TableHead>{t("supplier")}</TableHead>
+              <TableHead>{t("fuel")}</TableHead>
+              <TableHead>{t("liters")}</TableHead>
+              <TableHead>{t("value")}</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {abastecimentos.length === 0 ? (
               <TableRow>
-                <TableHead>{t("refuelingDate")}</TableHead>
-                <TableHead>{t("supplier")}</TableHead>
-                <TableHead>{t("fuel")}</TableHead>
-                <TableHead>{t("liters")}</TableHead>
-                <TableHead>{t("value")}</TableHead>
+                <TableCell colSpan={6} className="text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Info className="h-4 w-4" />
+                    <span>{t("noRecord")}</span>
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {abastecimentos.map((abastecimento, index) => (
+            ) : (
+              abastecimentos.map((abastecimento, index) => (
                 <TableRow key={index}>
                   <TableCell>
                     {abastecimento.dataAbastecimento
@@ -103,33 +116,31 @@ export function VeiculoFormAbastecimento({
                       currency: "BRL",
                     }).format(abastecimento.valor)}
                   </TableCell>
+                  <TableCell className="text-right">
+                    {onRemove && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => onRemove(index)}
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Remover</span>
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
-              ))}
-              {/* Linha de totais */}
-              <TableRow className="font-medium">
-                <TableCell colSpan={3}>
-                  <div className="flex items-center gap-2">
-                    <span>{t("total")}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{totalLitros.toFixed(2)}</TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(totalValor)}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </>
-      )}
+              ))
+            )}
+          </TableBody>
+        </Table>
 
-      <div className="flex justify-center">
-        <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t("addVehicle")}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="button" variant="outline" onClick={() => setOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar
+          </Button>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
